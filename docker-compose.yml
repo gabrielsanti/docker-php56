@@ -1,0 +1,41 @@
+version: "3.6"
+services:
+  version: '3'
+services:
+  website:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: website-web
+    container_name: website-web
+    volumes:
+      - ../www:/var/www/html/website
+    ports:
+      - 8000:80
+    links:
+      - website-db
+    env_file:
+      - .env.db
+  website-db:
+    restart: always
+    image: mysql:5.7
+    container_name: website-db
+    env_file:
+      - .env.db
+    volumes:
+      - ../db:/var/lib/mysql
+    ports:
+      - 3306:3306
+  db_pma:
+    image: phpmyadmin/phpmyadmin:latest
+    depends_on:
+      - website-db
+    ports:
+      - 8082:80
+    env_file:
+      - .env.db
+  mail:
+    image: mailhog/mailhog:latest
+    ports:
+      - 8081:8025
