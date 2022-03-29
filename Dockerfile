@@ -20,7 +20,7 @@ RUN chown -R www-data:www-data /var/www/html/website \
     && service apache2 restart
 
 # Installing PHP, PHP extensions and necessary packages
-RUN apt-get update && apt-get install -y --no-install-recommends libpng-dev libjpeg-dev libjpeg62-turbo libmcrypt4 libmcrypt-dev libcurl3-dev libxml2-dev libxslt-dev libicu-dev  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends --assume-yes --quiet ca-certificates curl git libpng-dev libjpeg-dev libjpeg62-turbo libmcrypt4 libmcrypt-dev libcurl3-dev libxml2-dev libxslt-dev libicu-dev  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update  \
     && apt-get install -y zlib1g-dev \
@@ -51,7 +51,13 @@ RUN BEFORE_PWD=$(pwd) \
     && rm -r /opt/xdebug
 RUN docker-php-ext-enable xdebug
 
+RUN curl -Lsf 'https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz' | tar -C '/usr/local' -xvzf -
+ENV PATH /usr/local/go/bin:$PATH
+RUN go get github.com/mailhog/mhsendmail
+RUN cp /root/go/bin/mhsendmail /usr/bin/mhsendmail
+RUN echo 'sendmail_path = /usr/bin/mhsendmail --smtp-addr mail:1025' > /usr/local/etc/php/php.ini
+
 # Exposing web ports
-EXPOSE 80 443
+EXPOSE 80 443 9000
 
 CMD apachectl -D FOREGROUND
